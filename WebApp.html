@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" 
+    integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <script>
+    function AddRow()
+    {
+      document.getElementById("add_button").disabled = true;
+      var name = document.getElementById("name").value;
+      var mobile_no = document.getElementById("mobile_no").value;
+      if(name != '' && mobile_no != '')
+      {
+        google.script.run.withSuccessHandler(function(return_string) 
+        {
+          SearchRecords();
+          document.getElementById("add_button").disabled = false;
+        }).AddRecord(name, mobile_no);       
+      }
+      else
+      {
+        document.getElementById("display_error").innerHTML = "Please Enter All Information!";
+        document.getElementById("add_button").disabled = false;
+      }
+    }
+
+    function ClearRecord()
+    {
+        document.getElementById("name").value = '';
+        document.getElementById("mobile_no").value = '';
+    }
+
+    function UpdateRecord(row_number)
+    {
+      document.getElementById("update_button"+row_number).disabled = true;
+      var record_id = document.getElementById("up_record_id"+row_number).value;
+      var name = document.getElementById("up_name"+row_number).value;
+      var mobile_no = document.getElementById("up_mobile_no"+row_number).value;
+
+      google.script.run.withSuccessHandler(function(return_string) 
+      {
+          document.getElementById("update_button"+row_number).disabled = false;
+      }).UpdateRecord(record_id, name, mobile_no);
+    }
+
+    function DeleteRecord(row_number)
+    {
+
+      var record_id = document.getElementById("up_record_id"+row_number).value;
+
+      google.script.run.withSuccessHandler(function(return_string) 
+      {
+        if(return_string == 'SUCCESS')
+        {
+          document.getElementById('mainTable').deleteRow(document.getElementById('ROWNUMBER:'+row_number).rowIndex); 
+        }
+      }).DeleteRecord(record_id);
+    }
+
+    function SearchRecords() 
+    {
+      var name = document.getElementById("name").value;
+      var mobile_no = document.getElementById("mobile_no").value;
+      var row_number = 0;
+
+      google.script.run.withSuccessHandler(function(ar) 
+      {
+
+        console.log(ar);
+        var displayTable = '<form>';
+        displayTable += '<table class=\"table\" id=\"mainTable\" >';
+        displayTable += "<tr>";
+        displayTable += "<th>Name</th>";
+        displayTable += "<th>Phone No.</th>";
+        displayTable += "<th></th>";
+        displayTable += "</tr>";
+
+        ar.forEach(function(item, index) 
+        {
+          displayTable += "<tr id=\"ROWNUMBER:"+ row_number +"\" >";
+          displayTable += "<td><div class=\"form-row\"><div class=\"form-group col-md-12\" ><label for=\"up_name\">Name</label>  ";
+          displayTable += "<input type=\"text\" id=\"up_name"+ row_number +"\" value=\""+item[1]+"\" class=\"form-control\" /> ";
+          displayTable += "<input type=\"hidden\" id=\"up_record_id"+ row_number +"\" value=\""+item[0]+"\" /></div></div> ";
+          displayTable += "<div class=\"form-group col-md-2\"><label for=\"up_phone\">Phone No</label> ";
+          displayTable += "<input type=\"text\" id=\"up_phone"+ row_number +"\" value=\""+item[2]+"\" class=\"form-control\" /></div></div></td> ";
+          displayTable += "<td><div style=\"padding: 5px\"> ";
+          displayTable += "<input type=\"button\" id=\"update_button"+ row_number +"\" value=\"Update\" class=\"btn btn-primary\" ";
+          displayTable += "onclick=\"UpdateRecord("+row_number+")\" /></div> ";
+          displayTable += "<div style=\"padding: 5px\" > ";
+          displayTable += "<input type=\"button\" value=\"Delete\" id=\"delete_button"+ row_number +"\"  class=\"btn btn-primary\" ";
+          displayTable += "onclick=\"DeleteRecord("+row_number+")\" /></div> ";
+          displayTable += "</td>";
+          displayTable += "</tr>";
+          row_number++;        
+        });
+
+        displayTable += '</table></form>';     
+        document.getElementById("rowdata").innerHTML = displayTable;
+
+      }).searchRecords(name, mobile_no);
+      
+    }
+    </script>
+  </head>
+  <body>
+  <div style="padding: 10px;" >
+  <form>
+  <div class="form-row">
+  <div class="form-group col-md-3">
+  <label for="name">Name</label>
+  <input type="text" id="name" class="form-control" />
+  </div>
+  <div class="form-group col-md-3">
+  <label for="mobile_no">Mobile No.</label>
+  <input type="text" id="mobile_no" class="form-control" />
+  </div> 
+  </div>
+  </div>
+  </div>
+  <div class="form-group col-md-6">
+  <input type="button" value="Add Record" class="btn btn-primary" onclick="AddRow()" id="add_button" />
+  <div id="display_error" style="color: red" ></div>
+  </div>
+  </form> 
+  <div id="rowdata"></div>
+  </div>
+  </body>
+</html>
